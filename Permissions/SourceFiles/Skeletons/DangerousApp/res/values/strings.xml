@@ -3,5 +3,7 @@
 
     <string name="app_name">DangerousApp</string>
     <string name="hello_world">You have opened a dangerous activity</string>
+    <string name="permission_description">DangerousActivityPermission</string>
+    <string name="permission_label">DangerousActivityPermission</string>
 
 </resources>
