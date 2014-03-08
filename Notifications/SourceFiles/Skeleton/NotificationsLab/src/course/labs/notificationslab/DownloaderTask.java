@@ -32,7 +32,7 @@ public class DownloaderTask extends AsyncTask<String, Void, String[]> {
 
 	// Change this variable to false if you do not have a stable network
 	// connection
-	private static final boolean HAS_NETWORK_CONNECTION = true;
+	private static final boolean HAS_NETWORK_CONNECTION = false;
 
 	// Raw feed file IDs used if you do not have a stable connection
 	public static final int txtFeeds[] = { R.raw.tswift, R.raw.rblack,
@@ -165,14 +165,14 @@ public class DownloaderTask extends AsyncTask<String, Void, String[]> {
 
 						// TODO: Check whether the result code is RESULT_OK
 
-						if (/*change this*/ true) {
+						if (getResultCode() != Activity.RESULT_OK) {
 
 							// TODO:  If so, create a PendingIntent using the
 							// restartMainActivityIntent and set its flags
 							// to FLAG_UPDATE_CURRENT
 							
-							final PendingIntent pendingIntent = null;
 							
+							final PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 
 							// Uses R.layout.custom_notification for the
@@ -186,7 +186,8 @@ public class DownloaderTask extends AsyncTask<String, Void, String[]> {
 							// TODO: Set the notification View's text to
 							// reflect whether or the download completed
 							// successfully
-
+							
+							mContentView.setTextViewText(R.id.text, success ? successMsg : failMsg);
 
 							
 							// TODO: Use the Notification.Builder class to
@@ -195,13 +196,21 @@ public class DownloaderTask extends AsyncTask<String, Void, String[]> {
 							// android.R.drawable.stat_sys_warning
 							// for the small icon. You should also setAutoCancel(true). 
 
-							Notification.Builder notificationBuilder = null;
+							Notification.Builder notificationBuilder = new Notification.Builder(context)
+								.setTicker("Downloader task")
+								.setSmallIcon(android.R.drawable.stat_sys_warning)
+								.setAutoCancel(true)
+								.setContentIntent(pendingIntent)
+								.setAutoCancel(false)
+								.setContent(mContentView);
 
 							// TODO: Send the notification
-
-							
-							
 							log("Notification Area Notification sent");
+							NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+							mNotificationManager.notify(MY_NOTIFICATION_ID, notificationBuilder.build());
+							
+							
+							
 						}
 					}
 				}, 
