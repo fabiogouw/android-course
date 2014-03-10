@@ -35,6 +35,6 @@ public class BubbleActivityFloatOffScreen extends ActivityInstrumentationTestCas
 		// Click to create a bubble
 		solo.clickOnScreen(500, 500);
 		
-		solo.sleep(2000);
+		solo.sleep(5000);
 	}
 }
