@@ -7,8 +7,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -16,6 +18,8 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.RemoteException;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,8 +42,7 @@ public class PlaceViewAdapter extends CursorAdapter {
 		mContext = context;
 		inflater = LayoutInflater.from(mContext);
 
-		if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_MOUNTED)) {
+		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 
 			try {
 
@@ -65,16 +68,17 @@ public class PlaceViewAdapter extends CursorAdapter {
 
 		if (null != newCursor) {
 
-        // TODO - clear the ArrayList list so it contains
-		// the current set of PlaceRecords. Use the 
-		// getPlaceRecordFromCursor() method to add the
-		// current place to the list
-		
-
-            
-            
-            
-            
+	        // clear the ArrayList list so it contains
+			// the current set of PlaceRecords. Use the 
+			// getPlaceRecordFromCursor() method to add the
+			// current place to the list
+			ArrayList<PlaceRecord> places = getList();
+			places.clear();
+			if(newCursor.moveToFirst()) {
+				do {
+					places.add(getPlaceRecordFromCursor(newCursor));
+				} while(newCursor.moveToNext());
+			}
             
             // Set the NotificationURI for the new cursor
 			newCursor.setNotificationUri(mContext.getContentResolver(),
@@ -100,8 +104,7 @@ public class PlaceViewAdapter extends CursorAdapter {
 		double lon = cursor.getDouble(cursor
 				.getColumnIndex(PlaceBadgesContract.LON));
 
-		return new PlaceRecord(null, flagBitmapPath, countryName, placeName,
-				lat, lon);
+		return new PlaceRecord(null, flagBitmapPath, countryName, placeName, lat, lon);
 
 	}
 
@@ -136,23 +139,36 @@ public class PlaceViewAdapter extends CursorAdapter {
 
 	public void add(PlaceRecord listItem) {
 
-		String lastPathSegment = Uri.parse(listItem.getFlagUrl())
-				.getLastPathSegment();
-		String filePath = mBitmapStoragePath + "/" + lastPathSegment;
-
-		if (storeBitmapToFile(listItem.getFlagBitmap(), filePath)) {
-
-			listItem.setFlagBitmapPath(filePath);
-			list.add(listItem);
-
-			// TODO - Insert new record into the ContentProvider
-
+		String flagUrl = listItem.getFlagUrl();
+		Log.d("XXX", "flagUrl " + flagUrl);
+		if(flagUrl != null) {
+			String lastPathSegment = Uri.parse(flagUrl).getLastPathSegment();
 			
-
-		
-        
-        
-        
+			String filePath = mBitmapStoragePath + "/" + lastPathSegment;
+	
+			if (storeBitmapToFile(listItem.getFlagBitmap(), filePath)) {
+	
+				listItem.setFlagBitmapPath(filePath);
+				list.add(listItem);
+	
+				// Insert new record into the ContentProvider
+				ArrayList<ContentProviderOperation> batchOperation = new ArrayList<ContentProviderOperation>();
+				batchOperation.add(ContentProviderOperation.newInsert(PlaceBadgesContract.CONTENT_URI)
+						.withValue(PlaceBadgesContract.FLAG_BITMAP_PATH, listItem.getFlagBitmapPath())
+						.withValue(PlaceBadgesContract.COUNTRY_NAME, listItem.getCountryName())
+						.withValue(PlaceBadgesContract.PLACE_NAME, listItem.getPlace())
+						.withValue(PlaceBadgesContract.LAT, listItem.getLat())
+						.withValue(PlaceBadgesContract.LON, listItem.getLon())
+						.build());
+	
+				try {
+					mContext.getContentResolver().applyBatch(PlaceBadgesContract.AUTHORITY, batchOperation);
+				} catch (RemoteException e) {
+					Log.e("Error", e.toString());
+				} catch (OperationApplicationException e) {
+					Log.e("Error", e.toString());
+				}
+			}
         }
 
 	}
@@ -165,17 +181,16 @@ public class PlaceViewAdapter extends CursorAdapter {
 
 		list.clear();
 
-		// TODO - delete all records in the ContentProvider
-
-
-        
-        
+		// delete all records in the ContentProvider
+		mContext.getContentResolver().delete(PlaceBadgesContract.CONTENT_URI, "", null);
+       Log.d("XXX", "removeAllViews");
         
 	}
 
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
 
+		Log.d("XXX", "bindView");
 		ViewHolder holder = (ViewHolder) view.getTag();
 
 		holder.flag.setImageBitmap(getBitmapFromFile(cursor.getString(cursor
@@ -192,6 +207,7 @@ public class PlaceViewAdapter extends CursorAdapter {
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup parent) {
 
+		Log.d("XXX", "newView");
 		View newView;
 		ViewHolder holder = new ViewHolder();
 
@@ -211,13 +227,11 @@ public class PlaceViewAdapter extends CursorAdapter {
 
 	private boolean storeBitmapToFile(Bitmap bitmap, String filePath) {
 
-		if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_MOUNTED)) {
+		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 
 			try {
 
-				BufferedOutputStream bos = new BufferedOutputStream(
-						new FileOutputStream(filePath));
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
 
 				bitmap.compress(CompressFormat.PNG, 100, bos);
 
