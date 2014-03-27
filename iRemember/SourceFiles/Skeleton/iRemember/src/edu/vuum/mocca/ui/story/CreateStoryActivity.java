@@ -61,6 +61,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.app.DialogFragment;
 import android.util.Log;
 import android.view.View;
@@ -230,73 +231,68 @@ public class CreateStoryActivity extends StoryActivityBase {
 	
 	private void launchSoundIntent() {
 		
-		// TODO - Create a new intent to launch the SoundRecordActivity activity
-
+		// Create a new intent to launch the SoundRecordActivity activity
+		Intent intent = new Intent(this, SoundRecordActivity.class);
 		
-		// TODO - Use getOutputMediaFile() to create a new 
+		// Use getOutputMediaFile() to create a new 
 		// filename for this specific sound file
+		File file = getOutputMediaFile(MEDIA_TYPE_AUDIO);
 		
-		
-		// TODO - Add the filename to the Intent as an extra. Use the Intent-extra name
+		// Add the filename to the Intent as an extra. Use the Intent-extra name
 		// from the SoundRecordActivity class, EXTRA_OUTPUT
-
+		intent.putExtra(SoundRecordActivity.EXTRA_OUTPUT, file.getAbsolutePath());
 		
-		// TODO - Start a new activity for result, using the new intent and the request
+		// Start a new activity for result, using the new intent and the request
 		// code MIC_SOUND_REQUEST
-		
+		startActivityForResult(intent, MIC_SOUND_REQUEST);
 	}
 	
 	// This function creates a new Intent to launch the built-in Camera activity
 
 	private void launchCameraIntent() {
 		
-		// TODO - Create a new intent to launch the MediaStore, Image capture function
+		// Create a new intent to launch the MediaStore, Image capture function
 		// Hint: use standard Intent from MediaStore class
 		// See: http://developer.android.com/reference/android/provider/MediaStore.html
-
+		Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 		
-		// TODO - Set the imagePath for this image file using the pre-made function
+		// Set the imagePath for this image file using the pre-made function
 		// getOutputMediaFile to create a new filename for this specific image;
-
+		fragment.imagePath = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
 		
-		// TODO - Add the filename to the Intent as an extra. Use the Intent-extra name
+		// Add the filename to the Intent as an extra. Use the Intent-extra name
 		// from the MediaStore class, EXTRA_OUTPUT
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, fragment.imagePath);
 		
-		
-		// TODO - Start a new activity for result, using the new intent and the request
+		// Start a new activity for result, using the new intent and the request
 		// code CAMERA_PIC_REQUEST
-		
-
+		startActivityForResult(intent, CAMERA_PIC_REQUEST);
 	}
 
 	// This function creates a new Intent to launch the built-in Video Camera activity
 	
 	private void launchVideoCameraIntent() {
-		// TODO - Create a new intent to launch the MediaStore, Image capture function
+		// Create a new intent to launch the MediaStore, Image capture function
 		// Hint: use standard Intent from MediaStore class
 		// See: http://developer.android.com/reference/android/provider/MediaStore.html
-
+		Intent intent = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
 		
-		// TODO - Set the fileUri for this video file using the pre-made function
+		// Set the fileUri for this video file using the pre-made function
 		// getOutputMediaFile to create a new filename for this specific video;
+		fragment.fileUri = getOutputMediaFileUri(MEDIA_TYPE_VIDEO);
 		
-
-		
-		// TODO - Add the filename to the Intent as an extra. Use the Intent-extra name
+		// Add the filename to the Intent as an extra. Use the Intent-extra name
 		// from the MediaStore class, EXTRA_OUTPUT
-
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, fragment.fileUri);
 		
-		// TODO - Specify as an extra that the video quality should be HIGH. Use the
+		// Specify as an extra that the video quality should be HIGH. Use the
 		// Intent-extra name, EXTRA_VIDEO_QUALITY, from the MediaStore class
 		// set the video image quality to high 
+		intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
 		
-
-		
-		// TODO - Start a new activity for result, using the new intent and the request
+		// Start a new activity for result, using the new intent and the request
 		// code CAMERA_VIDEO_REQUEST
-		
-
-	
+		startActivityForResult(intent, CAMERA_VIDEO_REQUEST);
 	}
 
 }
