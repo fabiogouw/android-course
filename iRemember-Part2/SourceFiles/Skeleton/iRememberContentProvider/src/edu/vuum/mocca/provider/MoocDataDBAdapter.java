@@ -189,9 +189,10 @@ public class MoocDataDBAdapter {
             final String selection, final String[] selectionArgs,
             final String sortOrder) {
 
-        // TODO: Perform a query on the database with the given parameters
-        
-        return null;
+    	Cursor cursor = db.query(table, projection, selection, selectionArgs, null, null, sortOrder);
+    	return cursor;
+        // TODOx: Perform a query on the database with the given parameters
+
     }
 
     /**
